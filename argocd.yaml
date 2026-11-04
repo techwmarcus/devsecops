@@ -6,9 +6,13 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/argoproj/argocd-example-apps.git
-    targetRevision: HEAD
-    path: guestbook
+    repoURL: 'https://github.com/techwmarcus/devsecops.git'
+    targetRevision: main
+    path: app
   destination:
-    server: https://kubernetes.default.svc
-    namespace: guestbook
+    server: 'https://kubernetes.default.svc'
+    namespace: prod
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
