@@ -1,0 +1,134 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: prod
+  labels:
+    app: frontend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+      - name: frontend
+        image: techwmarcus/mtgfrontend:v0.1
+        ports:
+        - name: http
+          containerPort: 8080
+        readinessProbe:        # FIXED: Moved out of ports list array
+          httpGet:
+            path: /
+            port: http
+          periodSeconds: 10
+        resources:             # FIXED: Moved out of ports list array
+          requests:
+            cpu: "50m"
+            memory: "64Mi"
+          limits:
+            cpu: "250m"
+            memory: "256Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: prod
+  labels:
+    app: frontend
+spec:
+  type: LoadBalancer
+  selector:
+    app: frontend
+  ports:
+  - port: 80
+    targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: prod
+  labels:
+    app: backend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: backend
+        image: techwmarcus/mtg-backend:v0.1
+        imagePullPolicy: IfNotPresent
+        ports:                # FIXED: Properly nested inside container properties
+        - name: http
+          containerPort: 3306
+        env:                  # FIXED: Properly nested inside container properties
+        - name: PORT
+          value: "3306"
+        - name: MYSQL_HOST
+          valueFrom:
+            secretKeyRef:
+              name: mortgage-db
+              key: db_host     # FIXED: Must be the secret key data identifier, not the raw endpoint string
+        - name: MYSQL_PORT
+          valueFrom:
+            secretKeyRef:
+              name: mortgage-db
+              key: db_port     # FIXED: Must be the secret key data identifier
+        - name: MYSQL_DATABASE
+          valueFrom:
+            secretKeyRef:
+              name: mortgage-db
+              key: db_name
+        - name: MYSQL_USER
+          valueFrom:
+            secretKeyRef:
+              name: mortgage-db
+              key: db_user
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mortgage-db
+              key: db_password
+        startupProbe:          # FIXED: Properly nested inside container properties
+          httpGet:
+            path: /api/health
+            port: http
+          failureThreshold: 30
+          periodSeconds: 5
+        readinessProbe:        # FIXED: Properly nested inside container properties
+          httpGet:
+            path: /api/health
+            port: http
+          periodSeconds: 10
+        resources:             # FIXED: Properly nested inside container properties
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:              # FIXED: Un-nested limits from requests
+            cpu: "500m"
+            memory: "512Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+  namespace: prod
+spec:
+  type: ClusterIP
+  selector:
+    app: backend
+  ports:
+  - port: 3306
+    targetPort: 3306

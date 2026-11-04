@@ -1,0 +1,129 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mortgage-backend
+  labels:
+    app: mortgage-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: mortgage-backend
+  template:
+    metadata:
+      labels:
+        app: mortgage-backend
+    spec:
+      containers:
+        - name: backend
+          image: ghcr.io/your-org/mortgage-backend:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 3306
+          env:
+            - name: PORT
+              value: 3306
+            - name: MYSQL_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: mortgage-db
+                  key: terraform-20261104032023668800000008.c1wke22u2wo0.us-west-1.rds.amazonaws.com
+            - name: MYSQL_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: mortgage-db
+                  key: 3306
+            - name: MYSQL_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: mortgage-db
+                  key: mortgage
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: mortgage-db
+                  key: admin
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mortgage-db
+                  key: admin123
+          startupProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            failureThreshold: 30
+            periodSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mortgage-backend
+spec:
+  selector:
+    app: mortgage-backend
+  ports:
+    - name: http
+      port: 3001
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mortgage-frontend
+  labels:
+    app: mortgage-frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: mortgage-frontend
+  template:
+    metadata:
+      labels:
+        app: mortgage-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: ghcr.io/your-org/mortgage-frontend:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mortgage-frontend
+spec:
+  selector:
+    app: mortgage-frontend
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http

@@ -1,0 +1,45 @@
+name: deploy
+on:
+
+  pull_request: 
+    branches: [main]
+  
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: update packages
+        run: sudo apt-get update -y
+
+      - name: Set up kubectl
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::716563790644:role/git-ops
+          aws-region: us-west-1
+          audience: sts.amazonaws.com
+
+      - name: Install kubectl
+        run: |
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x kubectl
+          sudo mv kubectl /usr/local/bin/
+      
+      - name: Kube config update
+        run: |
+          mkdir -p $HOME/.kube
+          aws eks update-kubeconfig --name devsecops --region us-west-1
+
+      - name: Install ArgoCD CLI
+        run: startup.sh
+        working-directory: ./
