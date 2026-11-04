@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 
 const initialForm = {
-  annualSalary: "120000",
-  monthlyDebts: "500",
-  downPayment: "50000",
-  maxDtiPercent: "36",
+  annualSalary: "",
+  monthlyDebts: "",
+  downPayment: "",
+  maxDtiPercent: "",
   interestRatePercent: "6.5",
   termYears: "30",
 };
@@ -132,7 +132,7 @@ export default function App() {
               type="number"
               min="1"
               max="100000000"
-              step="1000"
+              step="1"
               required
               value={form.annualSalary}
               onChange={updateField}
@@ -144,7 +144,7 @@ export default function App() {
               type="number"
               min="0"
               max="1000000"
-              step="50"
+              step="1"
               required
               value={form.monthlyDebts}
               onChange={updateField}
@@ -156,7 +156,7 @@ export default function App() {
               type="number"
               min="0"
               max="100000000"
-              step="1000"
+              step="1"
               required
               value={form.downPayment}
               onChange={updateField}

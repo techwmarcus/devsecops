@@ -8,6 +8,8 @@ resource "aws_db_instance" "default" {
   password             = "admin123"
   skip_final_snapshot  = true
   db_subnet_group_name = aws_db_subnet_group.default.name
+  vpc_security_group_ids = [module.vpc.db_sg]
+  publicly_accessible = true
 
 }
 output "db-endpoint" {

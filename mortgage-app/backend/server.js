@@ -3,7 +3,7 @@ import helmet from "helmet";
 import mysql from "mysql2/promise";
 import { calculateAffordability } from "./calculator.js";
 
-const port = Number(process.env.PORT ?? 3306);
+const port = Number(process.env.PORT ?? 3001);
 const pool = mysql.createPool({
   host: process.env.MYSQL_HOST ?? "terraform-20261104032023668800000008.c1wke22u2wo0.us-west-1.rds.amazonaws.com",
   port: Number(process.env.MYSQL_PORT ?? 3306),
