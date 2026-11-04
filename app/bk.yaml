@@ -1,20 +1,19 @@
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: backend
+  name: mortgage-backend
   namespace: prod
   labels:
-    app: backend
+    app: mortgage-backend
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: backend
+      app: mortgage-backend
   template:
     metadata:
       labels:
-        app: backend
+        app: mortgage-backend
     spec:
       containers:
       - name: backend
@@ -22,10 +21,10 @@ spec:
         imagePullPolicy: IfNotPresent
         ports:                # FIXED: Properly nested inside container properties
         - name: http
-          containerPort: 3306
+          containerPort: 3001
         env:                  # FIXED: Properly nested inside container properties
         - name: PORT
-          value: "3306"
+          value: "3001"
         - name: MYSQL_HOST
           valueFrom:
             secretKeyRef:
@@ -73,12 +72,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: backend
+  name: mortgage-backend
   namespace: prod
 spec:
   type: ClusterIP
   selector:
-    app: backend
+    app: mortgage-backend
   ports:
   - port: 3306
     targetPort: 3306
