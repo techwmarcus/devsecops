@@ -29,6 +29,15 @@ jobs:
           aws-region: us-west-1
           audience: sts.amazonaws.com
 
+      - name: terraform setup
+        uses: hashicorp/setup-terraform@v3  
+
+      - name: terraform init apply
+        run: |
+          terraform init
+          terraform apply -auto-approve
+        working-directory: ./modules
+
       - name: Install kubectl
         run: |
           curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
@@ -38,7 +47,7 @@ jobs:
       - name: Kube config update
         run: |
           mkdir -p $HOME/.kube
-          aws eks update-kubeconfig --name devsecops --region us-west-1
+          aws eks update-kubeconfig --name secops-cluster --region us-west-1
 
       - name: Install ArgoCD CLI
         run: startup.sh
