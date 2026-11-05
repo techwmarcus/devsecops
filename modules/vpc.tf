@@ -52,5 +52,5 @@ resource "aws_eks_access_policy_association" "admin1" {
     type = "cluster"
   }
 
-  depends_on = [aws_eks_access_entry.admin]
+  depends_on = [aws_eks_access_entry.admin1]
 }
