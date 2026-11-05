@@ -50,5 +50,7 @@ jobs:
           aws eks update-kubeconfig --name secops-cluster --region us-west-1
 
       - name: Install ArgoCD CLI
-        run: startup.sh
+        run: |
+          chmod +x startup.sh
+          ./startup.sh
         working-directory: ./
