@@ -48,12 +48,22 @@ h1, h2, h3, p { margin-top: 0; }
 .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 17px 15px; }
 .field { display: flex; min-width: 0; flex-direction: column; gap: 7px; }
 .field-label { color: #536159; font-size: 11px; font-weight: 600; }
+.mode-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; margin: -5px 0 20px; border-radius: 8px; background: #f1f5f1; }
+.mode-button { min-height: 36px; padding: 7px 10px; border: 0; border-radius: 6px; background: transparent; color: #69766d; font-size: 11px; font-weight: 600; cursor: pointer; }
+.mode-button.active { background: #fff; color: #315d40; box-shadow: 0 1px 4px rgb(34 53 41 / 10%); }
+.mode-button:focus-visible { outline: 2px solid #75a180; outline-offset: 2px; }
 .input-wrap { height: 42px; display: flex; align-items: center; border: 1px solid #e1e7e1; border-radius: 7px; background: #fff; transition: border-color .15s, box-shadow .15s; }
 .input-wrap:focus-within { border-color: #75a180; box-shadow: 0 0 0 3px rgb(91 145 103 / 11%); }
 .input-wrap input { width: 100%; min-width: 0; height: 100%; border: 0; outline: 0; padding: 0 11px; color: #2a3930; font-size: 13px; background: transparent; }
 .input-wrap.has-prefix input { padding-left: 1px; }
 .input-affix { flex: 0 0 auto; padding: 0 0 0 11px; color: #849088; font-size: 12px; }
 .has-suffix .input-affix:last-child { padding: 0 11px 0 2px; color: #69766d; }
+.slider-field { justify-content: center; }
+.slider-label, .slider-range { display: flex; align-items: center; justify-content: space-between; }
+.slider-label output { color: #315d40; font: 700 13px "Manrope", sans-serif; }
+.slider-field input[type="range"] { width: 100%; height: 20px; margin: 0; accent-color: var(--green); cursor: pointer; }
+.slider-field input[type="range"]:focus-visible { outline: 2px solid #75a180; outline-offset: 3px; border-radius: 4px; }
+.slider-range { color: #89938c; font-size: 9px; }
 .input-wrap input::-webkit-inner-spin-button, .input-wrap input::-webkit-outer-spin-button { margin: 0; -webkit-appearance: none; }
 .input-wrap input[type="number"] { -moz-appearance: textfield; }
 .field-hint { margin: 14px 0 18px; color: #89938c; font-size: 10.5px; line-height: 1.6; }

@@ -1,6 +1,6 @@
 # Homewise mortgage affordability calculator
 
-A three-tier application with a React frontend, Express API, and MySQL database. The API calculates an estimated maximum home price from gross annual income, monthly debt payments, down payment, maximum debt-to-income ratio, interest rate, and mortgage term. The database stores each submitted estimate and the UI displays the ten most recent.
+A three-tier application with a React frontend, Express API, and MySQL database. Choose between estimating a maximum home price from annual gross salary or estimating the annual gross salary needed for a home price. Both calculations use a down-payment percentage slider, a 6.5% default interest rate, and a 30-year default mortgage term. The database stores submitted estimates and the UI displays the ten most recent.
 
 ## Run locally with Docker Compose
 
@@ -38,11 +38,11 @@ npm test
 
 ## Calculation and API
 
-- `POST /api/calculations` accepts numeric `annualSalary`, `monthlyDebts`, `downPayment`, `maxDtiPercent`, `interestRatePercent`, and whole-number `termYears` fields.
+- `POST /api/calculations` accepts `calculationType` (`salary-to-price` or `price-to-salary`), the relevant `annualSalary` or `homePrice`, `downPaymentPercent`, `interestRatePercent`, and whole-number `termYears`.
 - `GET /api/calculations` returns the ten most recent saved estimates.
 - `GET /api/health` checks API and database connectivity.
 
-The calculator treats the DTI limit as the combined monthly debt and principal-and-interest payment divided by gross monthly income. It estimates the maximum principal with the standard fixed-rate amortization formula; a zero interest rate is supported. The down payment is added to that loan amount to estimate a home price. Taxes, homeowners insurance, HOA dues, PMI, closing costs, and lender-specific qualification rules are not included.
+Both calculations use 28% of gross monthly income as a fixed budgeting guideline for principal and interest; there is no debt-to-income calculator or user-entered debt ratio. The salary-to-price calculation estimates the mortgage affordable at that monthly payment and adds the selected percentage down payment to estimate a home price. The price-to-salary calculation applies the down-payment percentage to the entered home price, calculates the mortgage payment, and estimates the gross salary needed under the same guideline. The standard fixed-rate amortization formula supports zero interest. Property taxes, homeowners insurance, HOA dues, PMI, closing costs, other debts, and lender-specific qualification rules are not included.
 
 ## Kubernetes / EKS
 

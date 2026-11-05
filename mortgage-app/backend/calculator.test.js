@@ -1,50 +1,67 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { calculateAffordability } from "./calculator.js";
+import {
+  affordabilityIncomePercent,
+  calculateAffordability,
+} from "./calculator.js";
 
-const sample = {
-  annualSalary: 120_000,
-  monthlyDebts: 500,
-  downPayment: 50_000,
-  maxDtiPercent: 36,
-  interestRatePercent: 6,
+const sharedTerms = {
+  downPaymentPercent: 20,
+  interestRatePercent: 6.5,
   termYears: 30,
 };
 
-test("calculates a loan using gross monthly income, debts, rate, and term", () => {
-  const { result } = calculateAffordability(sample);
-  assert.equal(result.monthlyPaymentBudget, 3100);
-  assert.equal(result.maxLoanAmount, 517_054);
-  assert.equal(result.maxHomePrice, 567_054);
+test("estimates maximum home price from salary and down-payment percentage", () => {
+  const { result } = calculateAffordability({
+    ...sharedTerms,
+    calculationType: "salary-to-price",
+    annualSalary: 120_000,
+  });
+
+  assert.equal(affordabilityIncomePercent, 28);
+  assert.equal(result.monthlyPayment, 2800);
+  assert.equal(result.maxLoanAmount, 442_990.29);
+  assert.equal(result.maxHomePrice, 553_737.87);
+  assert.equal(result.downPaymentAmount, 110_747.57);
+});
+
+test("estimates required salary from home price and down-payment percentage", () => {
+  const { result } = calculateAffordability({
+    ...sharedTerms,
+    calculationType: "price-to-salary",
+    homePrice: 500_000,
+  });
+
+  assert.equal(result.downPaymentAmount, 100_000);
+  assert.equal(result.maxLoanAmount, 400_000);
+  assert.equal(result.monthlyPayment, 2528.27);
+  assert.equal(result.annualSalary, 108_354.52);
+  assert.equal(result.maxHomePrice, 500_000);
 });
 
 test("supports a zero interest rate", () => {
   const { result } = calculateAffordability({
-    ...sample,
+    ...sharedTerms,
+    calculationType: "price-to-salary",
+    homePrice: 360_000,
     interestRatePercent: 0,
     termYears: 15,
   });
-  assert.equal(result.maxLoanAmount, 558_000);
+
+  assert.equal(result.monthlyPayment, 1600);
+  assert.equal(result.annualSalary, 68_571.43);
 });
 
-test("does not allow existing debts to exceed the DTI budget", () => {
-  const { result } = calculateAffordability({
-    ...sample,
-    monthlyDebts: 5000,
-  });
-  assert.equal(result.monthlyPaymentBudget, 0);
-  assert.equal(result.maxLoanAmount, 0);
-  assert.equal(result.maxHomePrice, sample.downPayment);
-});
-
-test("returns field errors for invalid values", () => {
+test("rejects invalid values and calculation types", () => {
   const { errors } = calculateAffordability({
-    ...sample,
+    ...sharedTerms,
+    calculationType: "unsupported",
     annualSalary: 0,
     termYears: 1.5,
-    interestRatePercent: 30,
+    downPaymentPercent: 100,
   });
-  assert.ok(errors.annualSalary);
+
+  assert.ok(errors.calculationType);
   assert.ok(errors.termYears);
-  assert.ok(errors.interestRatePercent);
+  assert.ok(errors.downPaymentPercent);
 });

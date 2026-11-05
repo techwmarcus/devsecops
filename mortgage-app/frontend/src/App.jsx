@@ -2,9 +2,8 @@ import { useEffect, useState } from "react";
 
 const initialForm = {
   annualSalary: "",
-  monthlyDebts: "",
-  downPayment: "",
-  maxDtiPercent: "",
+  homePrice: "",
+  downPaymentPercent: "20",
   interestRatePercent: "6.5",
   termYears: "30",
 };
@@ -33,6 +32,7 @@ function Field({ id, label, prefix, suffix, ...props }) {
 }
 
 export default function App() {
+  const [calculationType, setCalculationType] = useState("salary-to-price");
   const [form, setForm] = useState(initialForm);
   const [result, setResult] = useState(null);
   const [history, setHistory] = useState([]);
@@ -68,9 +68,15 @@ export default function App() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(
-          Object.fromEntries(
-            Object.entries(form).map(([key, value]) => [key, Number(value)]),
-          ),
+          {
+            calculationType,
+            ...(calculationType === "salary-to-price"
+              ? { annualSalary: Number(form.annualSalary) }
+              : { homePrice: Number(form.homePrice) }),
+            downPaymentPercent: Number(form.downPaymentPercent),
+            interestRatePercent: Number(form.interestRatePercent),
+            termYears: Number(form.termYears),
+          },
         ),
       });
       const data = await response.json();
@@ -91,6 +97,14 @@ export default function App() {
     }
   }
 
+  function changeCalculationType(type) {
+    setCalculationType(type);
+    setResult(null);
+    setError("");
+  }
+
+  const isSalaryToPrice = calculationType === "salary-to-price";
+
   return (
     <main className="page-shell">
       <header className="topbar">
@@ -109,7 +123,7 @@ export default function App() {
       <section className="intro">
         <div className="eyebrow"><span /> KNOW YOUR NUMBERS</div>
         <h1>A home that fits<br />your <span>life,</span> not just your budget.</h1>
-        <p>Get a clear, personalized estimate using your income, monthly debts, and the mortgage terms that work for you.</p>
+        <p>Explore a home price based on your income, or find the income you&apos;d need for a home you have in mind.</p>
       </section>
 
       <section className="calculator-layout" aria-label="Mortgage affordability calculator">
@@ -117,62 +131,77 @@ export default function App() {
           <div className="card-heading">
             <div>
               <span className="section-kicker">01 / YOUR FINANCES</span>
-              <h2>Let&apos;s run the numbers</h2>
+              <h2>{isSalaryToPrice ? "How much home can I afford?" : "What income do I need?"}</h2>
             </div>
             <span className="lock-icon" aria-label="Calculations are saved">
               <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></svg>
             </span>
           </div>
 
+          <div className="mode-selector" role="group" aria-label="Choose a calculation">
+            <button
+              className={isSalaryToPrice ? "mode-button active" : "mode-button"}
+              type="button"
+              aria-pressed={isSalaryToPrice}
+              onClick={() => changeCalculationType("salary-to-price")}
+            >
+              I know my salary
+            </button>
+            <button
+              className={!isSalaryToPrice ? "mode-button active" : "mode-button"}
+              type="button"
+              aria-pressed={!isSalaryToPrice}
+              onClick={() => changeCalculationType("price-to-salary")}
+            >
+              I know the home price
+            </button>
+          </div>
+
           <div className="field-grid">
-            <Field
-              id="annualSalary"
-              label="Annual gross income"
-              prefix="$"
-              type="number"
-              min="1"
-              max="100000000"
-              step="1"
-              required
-              value={form.annualSalary}
-              onChange={updateField}
-            />
-            <Field
-              id="monthlyDebts"
-              label="Monthly debt payments"
-              prefix="$"
-              type="number"
-              min="0"
-              max="1000000"
-              step="1"
-              required
-              value={form.monthlyDebts}
-              onChange={updateField}
-            />
-            <Field
-              id="downPayment"
-              label="Down payment"
-              prefix="$"
-              type="number"
-              min="0"
-              max="100000000"
-              step="1"
-              required
-              value={form.downPayment}
-              onChange={updateField}
-            />
-            <Field
-              id="maxDtiPercent"
-              label="Max debt-to-income ratio"
-              type="number"
-              min="1"
-              max="50"
-              step="0.5"
-              suffix="%"
-              required
-              value={form.maxDtiPercent}
-              onChange={updateField}
-            />
+            {isSalaryToPrice ? (
+              <Field
+                id="annualSalary"
+                label="Annual gross salary"
+                prefix="$"
+                type="number"
+                min="1"
+                max="100000000"
+                step="1"
+                required
+                value={form.annualSalary}
+                onChange={updateField}
+              />
+            ) : (
+              <Field
+                id="homePrice"
+                label="Home price"
+                prefix="$"
+                type="number"
+                min="1"
+                max="100000000"
+                step="1"
+                required
+                value={form.homePrice}
+                onChange={updateField}
+              />
+            )}
+            <label className="field slider-field" htmlFor="downPaymentPercent">
+              <span className="slider-label">
+                <span className="field-label">Down payment</span>
+                <output htmlFor="downPaymentPercent">{form.downPaymentPercent}%</output>
+              </span>
+              <input
+                id="downPaymentPercent"
+                name="downPaymentPercent"
+                type="range"
+                min="0"
+                max="95"
+                step="1"
+                value={form.downPaymentPercent}
+                onChange={updateField}
+              />
+              <span className="slider-range"><span>0%</span><span>95%</span></span>
+            </label>
             <Field
               id="interestRatePercent"
               label="Annual interest rate"
@@ -200,12 +229,14 @@ export default function App() {
           </div>
 
           <div className="field-hint">
-            Include monthly minimum payments for credit cards, auto loans, student loans, and other debt.
+            {isSalaryToPrice
+              ? "Uses 28% of gross monthly salary as a fixed principal-and-interest budgeting guideline."
+              : "Estimates the annual gross salary needed to cover principal and interest using the same 28% guideline."}
           </div>
           {error && <p className="error-message" role="alert">{error}</p>}
 
           <button className="calculate-button" type="submit" disabled={loading}>
-            {loading ? "Calculating..." : "Calculate my estimate"}
+            {loading ? "Calculating..." : isSalaryToPrice ? "Calculate my home price" : "Calculate required salary"}
             {!loading && <span aria-hidden="true">→</span>}
           </button>
           <p className="form-disclaimer">Your estimates are saved to this app&apos;s shared calculation history. Don&apos;t enter sensitive personal information.</p>
@@ -218,18 +249,24 @@ export default function App() {
           </div>
           {result ? (
             <>
-              <p className="result-label">Estimated maximum home price</p>
-              <p className="result-amount">{dollars(result.maxHomePrice)}</p>
+              <p className="result-label">
+                {isSalaryToPrice ? "Estimated maximum home price" : "Estimated annual gross salary needed"}
+              </p>
+              <p className="result-amount">{dollars(isSalaryToPrice ? result.maxHomePrice : result.annualSalary)}</p>
               <div className="result-divider" />
               <div className="result-row">
-                <span>Estimated loan amount</span>
+                <span>Estimated mortgage amount</span>
                 <strong>{dollars(result.maxLoanAmount)}</strong>
               </div>
               <div className="result-row">
                 <span>Monthly principal &amp; interest</span>
-                <strong>{dollars(result.monthlyPaymentBudget)}<small>/mo</small></strong>
+                <strong>{dollars(result.monthlyPayment)}<small>/mo</small></strong>
               </div>
-              <p className="result-note">Based on your selected DTI limit, rate, and term.</p>
+              <div className="result-row">
+                <span>Down payment ({form.downPaymentPercent}%)</span>
+                <strong>{dollars(result.downPaymentAmount)}</strong>
+              </div>
+              <p className="result-note">Based on a 28% salary guideline, your rate, and {form.termYears}-year term.</p>
             </>
           ) : (
             <div className="empty-result">
@@ -244,7 +281,9 @@ export default function App() {
                 </svg>
               </div>
               <h3>Your next chapter starts here.</h3>
-              <p>Enter your numbers to see a home price that aligns with your monthly budget.</p>
+              <p>{isSalaryToPrice
+                ? "Enter your salary to estimate a home price that fits your monthly budget."
+                : "Enter a home price to estimate the salary needed for the mortgage."}</p>
             </div>
           )}
           <div className="assumptions">
@@ -268,9 +307,12 @@ export default function App() {
               <article className="history-item" key={item.id}>
                 <div>
                   <span className="history-date">{new Date(item.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</span>
-                  <strong>{dollars(item.max_home_price)}</strong>
+                  <strong>{dollars(item.calculation_type === "price-to-salary" ? item.annual_salary : item.max_home_price)}</strong>
                 </div>
-                <span>{item.term_years}-year term · {Number(item.interest_rate_percent).toFixed(2)}% rate · {Number(item.max_dti_percent)}% DTI</span>
+                <span>
+                  {item.calculation_type === "price-to-salary" ? "Income needed" : "Affordable home"}
+                  {" · "}{item.term_years}-year term · {Number(item.interest_rate_percent).toFixed(2)}% rate · {Number(item.down_payment_percent)}% down
+                </span>
               </article>
             ))}
           </div>
