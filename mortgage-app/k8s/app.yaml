@@ -23,7 +23,7 @@ spec:
               containerPort: 3001
           env:
             - name: PORT
-              value: 3001
+              value: "3001"
             - name: MYSQL_HOST
               valueFrom:
                 secretKeyRef:
@@ -48,7 +48,22 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: mortgage-db
-                  key: admin123
+                  key: db_password
+            - name: COGNITO_REGION
+              valueFrom:
+                configMapKeyRef:
+                  name: mortgage-auth
+                  key: region
+            - name: COGNITO_USER_POOL_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: mortgage-auth
+                  key: user_pool_id
+            - name: COGNITO_USER_POOL_CLIENT_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: mortgage-auth
+                  key: user_pool_client_id
           startupProbe:
             httpGet:
               path: /api/health
@@ -79,6 +94,15 @@ spec:
     - name: http
       port: 3001
       targetPort: http
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mortgage-auth
+data:
+  region: us-west-1
+  user_pool_id: replace-with-terraform-output
+  user_pool_client_id: replace-with-terraform-output
 ---
 apiVersion: apps/v1
 kind: Deployment

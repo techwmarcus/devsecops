@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { fetchAuthSession } from "aws-amplify/auth";
+import { useAuthenticator } from "@aws-amplify/ui-react";
 
 const initialForm = {
   annualSalary: "",
@@ -32,6 +34,10 @@ function Field({ id, label, prefix, suffix, ...props }) {
 }
 
 export default function App() {
+  const { user, signOut } = useAuthenticator((context) => [
+    context.user,
+    context.signOut,
+  ]);
   const [calculationType, setCalculationType] = useState("salary-to-price");
   const [form, setForm] = useState(initialForm);
   const [result, setResult] = useState(null);
@@ -40,11 +46,27 @@ export default function App() {
   const [loading, setLoading] = useState(false);
 
   async function loadHistory() {
-    const response = await fetch("/api/calculations");
+    const response = await authenticatedFetch("/api/calculations");
     if (!response.ok) {
       throw new Error("Saved calculations could not be loaded.");
     }
     setHistory(await response.json());
+  }
+
+  async function authenticatedFetch(url, options = {}) {
+    const session = await fetchAuthSession();
+    const accessToken = session.tokens?.accessToken.toString();
+    if (!accessToken) {
+      throw new Error("Your session has expired. Please sign in again.");
+    }
+
+    return fetch(url, {
+      ...options,
+      headers: {
+        ...options.headers,
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
   }
 
   useEffect(() => {
@@ -64,7 +86,7 @@ export default function App() {
     setResult(null);
 
     try {
-      const response = await fetch("/api/calculations", {
+      const response = await authenticatedFetch("/api/calculations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(
@@ -117,7 +139,10 @@ export default function App() {
           </span>
           <span>homewise</span>
         </a>
-        <span className="topbar-note"><span className="status-dot" /> Your home-buying starting point</span>
+        <div className="account-actions">
+          <span className="topbar-note"><span className="status-dot" /> {user?.signInDetails?.loginId ?? user?.username}</span>
+          <button className="sign-out-button" type="button" onClick={signOut}>Sign out</button>
+        </div>
       </header>
 
       <section className="intro">
