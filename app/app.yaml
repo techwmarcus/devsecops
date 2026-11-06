@@ -22,6 +22,17 @@ spec:
         envFrom:
         - secretRef:
             name: creds-db
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            echo "window.env = { 
+              COGNITO_USER_POOL_ID: '${VITE_COGNITO_USER_POOL_ID}', 
+              COGNITO_USER_POOL_CLIENT_ID: '${VITE_COGNITO_USER_POOL_CLIENT_ID}',
+              VITE_AWS_REGION: '${VITE_AWS_REGION}'
+            };" > /usr/share/nginx/html/env-config.js;
+            
+            echo "Successfully generated runtime env-config.js";
+            nginx -g "daemon off;";
         readinessProbe:        # FIXED: Moved out of ports list array
           httpGet:
             path: /
