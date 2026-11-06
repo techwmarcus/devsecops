@@ -16,6 +16,7 @@ spec:
       containers:
       - name: frontend
         image: techwmarcus/mtg-frontend:v0.8
+        imagePullPolicy: Always
         ports:
         - name: http
           containerPort: 8080
