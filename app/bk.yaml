@@ -50,21 +50,21 @@ spec:
             secretKeyRef:
               name: mortgage-db
               key: db_password
-        - name: VITE_AWS_REGION
+        - name: AWS_REGION
           valueFrom:
             secretKeyRef:
               name: creds-db
-              key: VITE_AWS_REGION
-        - name: VITE_COGNITO_USER_POOL_ID
+              key: AWS_REGION
+        - name: COGNITO_USER_POOL_ID
           valueFrom:
             secretKeyRef:
               name: creds-db
-              key: VITE_COGNITO_USER_POOL_ID
-        - name: VITE_COGNITO_USER_POOL_CLIENT_ID
+              key: COGNITO_USER_POOL_ID
+        - name: COGNITO_USER_POOL_CLIENT_ID
           valueFrom:
             secretKeyRef:
               name: creds-db
-              key: VITE_COGNITO_USER_POOL_CLIENT_ID
+              key: COGNITO_USER_POOL_CLIENT_ID
         startupProbe:          # FIXED: Properly nested inside container properties
           httpGet:
             path: /api/health
