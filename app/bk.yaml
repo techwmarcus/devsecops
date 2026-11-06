@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: backend
-        image: techwmarcus/mtg-backend:v0.4
+        image: techwmarcus/mtg-backend:v0.5
         imagePullPolicy: IfNotPresent
         ports:                # FIXED: Properly nested inside container properties
         - name: http
