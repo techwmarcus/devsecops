@@ -6,8 +6,11 @@ import App from "./App.jsx";
 import "@aws-amplify/ui-react/styles.css";
 import "./styles.css";
 
-const { VITE_AWS_REGION, VITE_COGNITO_USER_POOL_ID, VITE_COGNITO_USER_POOL_CLIENT_ID } =
-  import.meta.env;
+const { 
+  VITE_AWS_REGION, 
+  VITE_COGNITO_USER_POOL_ID, 
+  VITE_COGNITO_USER_POOL_CLIENT_ID 
+} = window.env || {};
 
 if (!VITE_AWS_REGION || !VITE_COGNITO_USER_POOL_ID || !VITE_COGNITO_USER_POOL_CLIENT_ID) {
   throw new Error(
